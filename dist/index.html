@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Accounting Dashboard</title>
+    <title>AccountBoard - Multi-user Accounting Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,52 +11,70 @@
     <style>
       body {
         font-family: 'Vazirmatn', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Loading spinner */
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 18px;
+        color: #64748b;
       }
     </style>
   </head>
   <body class="bg-slate-50">
-    <div id="root"></div>
+    <div id="root">
+      <div class="loading">
+        <div>Loading AccountBoard...</div>
+      </div>
+    </div>
     
-    <!-- Production Build Notice -->
-    <script>
-      // Update API base URL for production
-      window.API_BASE_URL = window.location.origin + '/api';
-      
-      // Check if this is a production deployment
-      if (window.location.hostname !== 'localhost') {
-        console.log('Production mode detected. API base URL:', window.API_BASE_URL);
-      }
-    </script>
-    
-    <!-- Import maps for production -->
+    <!-- Import maps for ES modules -->
     <script type="importmap">
     {
       "imports": {
-        "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
-        "react/": "https://aistudiocdn.com/react@^19.1.1/",
-        "react": "https://aistudiocdn.com/react@^19.1.1",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/"
+        "react": "https://esm.sh/react@19.0.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+        "recharts": "https://esm.sh/recharts@2.8.0"
       }
     }
     </script>
     
     <!-- Main application module -->
     <script type="module">
-      import { createRoot } from 'react-dom/client';
-      import App from './App.js';
-      
-      const root = createRoot(document.getElementById('root'));
-      root.render(App());
-    </script>
-    
-    <!-- Service Worker for production caching (optional) -->
-    <script>
-      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => console.log('SW registered'))
-            .catch(registrationError => console.log('SW registration failed'));
-        });
+      try {
+        console.log('🚀 Starting AccountBoard application...');
+        
+        // Import React and ReactDOM
+        const { createRoot } = await import('react-dom/client');
+        
+        // Import our main App component
+        const AppModule = await import('./App.js');
+        const App = AppModule.default;
+        
+        // Create root and render app
+        const root = createRoot(document.getElementById('root'));
+        root.render(App());
+        
+        console.log('✅ AccountBoard application loaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to load AccountBoard application:', error);
+        document.getElementById('root').innerHTML = `
+          <div style="padding: 20px; text-align: center; color: #ef4444;">
+            <h2>Failed to load application</h2>
+            <p>Please check the browser console for details.</p>
+            <p>Error: ${error.message}</p>
+            <button onclick="window.location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+              Retry
+            </button>
+          </div>
+        `;
       }
     </script>
   </body>
