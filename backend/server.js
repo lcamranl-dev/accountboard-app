@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { testConnection } from './config/database.js';
+import { runAutoMigration } from './config/auto-migrate.js';
 import { apiLimiter, errorHandler, notFoundHandler } from './middleware/rateLimiting.js';
 
 // Import routes
@@ -81,17 +82,31 @@ app.use(errorHandler);
 // Start server
 const startServer = async () => {
   try {
-    // Test database connection (non-blocking for development)
+    // Test database connection
     const dbConnected = await testConnection();
     if (!dbConnected) {
       console.warn('⚠️  Database connection failed. Some features may not work.');
-      console.warn('💡 To setup database: npm run db:migrate && npm run db:seed');
+      console.warn('💡 Make sure your database is running and accessible.');
+      return;
+    }
+
+    // Run auto-migration on startup (for production deployment)
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔄 Running auto-migration for production...');
+      try {
+        await runAutoMigration();
+        console.log('✅ Auto-migration completed successfully');
+      } catch (error) {
+        console.error('❌ Auto-migration failed:', error);
+        // Don't exit - let the server start anyway
+      }
     }
 
     app.listen(PORT, () => {
       console.log('🚀 Server started successfully!');
       console.log(`📡 API Server running on http://localhost:${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`💾 Database: ${process.env.DATABASE_URL ? 'PostgreSQL (Production)' : 'MySQL (Development)'}`);
       console.log(`📊 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
       console.log('\n📋 Available endpoints:');
       console.log('   GET  /health - Health check');
@@ -100,9 +115,13 @@ const startServer = async () => {
       console.log('   GET  /api/employees - Get employees');
       console.log('   GET  /api/accounts - Get accounts');
       console.log('   GET  /api/transactions - Get transactions');
-      console.log('\n💡 To setup the database, run:');
-      console.log('   npm run db:migrate');
-      console.log('   npm run db:seed');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('\n💡 For development setup:');
+        console.log('   npm run db:migrate');
+        console.log('   npm run db:seed');
+      } else {
+        console.log('\n📧 Demo login: admin@demo.com / admin123');
+      }
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
