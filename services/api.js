@@ -4,7 +4,7 @@ const API_BASE_URL = (() => {
   // Check if we're in production (deployed)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     // Production environment - use your Render backend URL
-    return 'https://accountboard-backend.onrender.com/api';  // Update this with your actual Render backend URL
+    return 'https://accountboard-backend.onrender.com/api';  // Your actual Render backend URL
   }
   // Development environment
   return 'http://localhost:3001/api';
